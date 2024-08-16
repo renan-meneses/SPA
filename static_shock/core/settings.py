@@ -2,6 +2,8 @@ import os, ast
 from pathlib import Path
 from decouple import config
 
+from apps import supplier
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -23,7 +25,12 @@ INSTALLED_APPS = [
     "graphene_django",
     "apps.supplier"
 ]
+GRAPHENE = {
+    'SCHEMA': 'core.schema.schema',
+    'SCHEMA': 'apps.supplier.schema.schema'
 
+    
+}
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",

@@ -1,4 +1,3 @@
-from sre_parse import State
 from django.db import models
 from apps.utils.base_model import BaseModel
 
@@ -41,7 +40,7 @@ class Supplier(BaseModel):
     cost_per_kWh = models.DecimalField(max_digits=4, decimal_places=2 , blank=False)
     minimum_kWh_limit = models.IntegerField(blank=False)
     number_customers = models.IntegerField(blank=False)
-    average_customer_rating = models.DecimalField(max_digits=2, decimal_places=2)
+    average_customer_rating = models.DecimalField(max_digits=3, decimal_places=2)
     
     def __str__(self):
         return f"{self.name} -- {self.average_customer_rating} -- {self.number_customers}"
