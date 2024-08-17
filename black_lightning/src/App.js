@@ -77,7 +77,7 @@ const App = () => {
     <Container>
       <Typography align="center" variant="h3">
         Welcome to supplier App "{userdata?.user?.username}"
-        <Button color="secondary" variant="contained" onClick={logoutNow}>
+        <Button style={marginLeft="80px"} color="secondary" variant="contained" onClick={logoutNow}>
           Logout
         </Button>
       </Typography>
@@ -167,7 +167,7 @@ const GET_USER_DATA = gql`
 `;
 const GET_Suppliers = gql`
   {
-    suppliers {
+    supplier {
       id
       name
       averageCustomerRating
