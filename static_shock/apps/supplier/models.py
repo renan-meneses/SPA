@@ -1,6 +1,6 @@
 from django.db import models
 from apps.utils.base_model import BaseModel
-
+from django.contrib.auth import get_user_model
 
 #name, logo, state of origin, cost per kWh, minimum kWh limit, total number of customers and average customer rating
 class Supplier(BaseModel):
@@ -44,3 +44,8 @@ class Supplier(BaseModel):
     
     def __str__(self):
         return f"{self.name} -- {self.average_customer_rating} -- {self.number_customers}"
+
+class Customers(BaseModel):
+    customer = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
+    supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE)
+    monthly_consumption = models.IntegerField(blank=False)

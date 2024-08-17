@@ -4,7 +4,7 @@ from graphene_django import DjangoObjectType
 from graphql_jwt.decorators import login_required
 from django.contrib.auth import get_user_model
 from graphene_file_upload.scalars import Upload
-from .models import Supplier
+from .models import Supplier, Customers
 
 class SupplierType(DjangoObjectType):
     class Meta:
@@ -13,6 +13,10 @@ class SupplierType(DjangoObjectType):
 class UserType(DjangoObjectType):  # Corrigido para DjangoObjectType
     class Meta:
         model = get_user_model()
+
+class CustomersType(DjangoObjectType):
+    class Meta:
+        model = Customers
 
 class Query(graphene.ObjectType):
     supplier = graphene.List(SupplierType, id=graphene.UUID())  # Tipo corrigido para SupplierType
@@ -24,6 +28,18 @@ class Query(graphene.ObjectType):
         if id:
             return Supplier.objects.filter(id=id)
         return Supplier.objects.all().order_by("average_customer_rating")
+    
+    def resolve_customer_user(self, info, id=None):  # Nome do resolvedor corrigido
+        user = info.context.user
+        if id:
+            return Customers.objects.filter(user=user)
+        return Customers
+
+    def resolve_customer(self, info, id=None):  # Nome do resolvedor corrigido
+        user = info.context.user
+        if id:
+            return Customers.objects.filter(id=id)
+        return Customers.objects.all()
 
     @login_required
     def resolve_user(self, info):
@@ -32,6 +48,7 @@ class Query(graphene.ObjectType):
             raise Exception("Login Required")
         return user
 
+# Init Mutations
 class CreateSupplier(graphene.Mutation):
     supplier = graphene.Field(SupplierType)
     
@@ -93,6 +110,75 @@ class DeleteSupplier(graphene.Mutation):  # Corrigido o nome da mutação
         supplier.delete()
         return DeleteSupplier(message=f"Supplier with ID {id} deleted")
 
+class CreateCustomer(graphene.Mutation):
+    customer = graphene.Field(CustomersType)
+
+    class Arguments:
+        supplier_id = graphene.UUID(required=True)
+        monthly_consumption = graphene.Int(required=True)
+
+    @login_required
+    def mutate(self, info, supplier_id, monthly_consumption):
+        user = info.context.user
+        if user.is_anonymous:
+            raise Exception("Not Logged in")
+
+        supplier = Supplier.objects.get(id=supplier_id)
+
+        if monthly_consumption < supplier.minimum_kWh_limit:
+            raise Exception(f"Monthly consumption must be at least {supplier.minimum_kWh_limit} kWh")
+
+        if Customers.objects.filter(supplier=supplier).count() >= supplier.number_customers:
+            raise Exception("Supplier has reached the maximum number of customers")
+
+        customer = Customers.objects.create(
+            customer=user,
+            supplier=supplier,
+            monthly_consumption=monthly_consumption
+        )
+
+        return CreateCustomer(customer=customer)
+
+class UpdateCustomer(graphene.Mutation):
+    customer = graphene.Field(CustomersType)
+
+    class Arguments:
+        id = graphene.UUID(required=True)
+        supplier_id = graphene.UUID()
+        monthly_consumption = graphene.Int()
+
+    @login_required
+    def mutate(self, info, id, supplier_id=None, monthly_consumption=None):
+        user = info.context.user
+        if user.is_anonymous:
+            raise Exception("Not Logged in")
+
+        customer = Customers.objects.get(id=id, customer=user)
+
+        if supplier_id:
+            customer.supplier = Supplier.objects.get(id=supplier_id)
+
+        if monthly_consumption is not None:
+            customer.monthly_consumption = monthly_consumption
+
+        customer.save()
+
+        return UpdateCustomer(customer=customer)
+
+class DeleteCustomer(graphene.Mutation):
+    message = graphene.String()
+
+    class Arguments:
+        id = graphene.UUID(required=True)
+
+    @login_required
+    def mutate(self, info, id):
+        user = info.context.user
+        customer = Customers.objects.get(id=id, customer=user)
+        customer.delete()
+
+        return DeleteCustomer(message=f"Customer with ID {id} deleted")
+
 class CreateUser(graphene.Mutation):
     user = graphene.Field(UserType)
 
@@ -110,4 +196,7 @@ class Mutation(graphene.ObjectType):
     create_supplier = CreateSupplier.Field()
     update_supplier = UpdateSupplier.Field()
     delete_supplier = DeleteSupplier.Field()
+    create_customer = CreateCustomer.Field()
+    update_customer = UpdateCustomer.Field()
+    delete_customer = DeleteCustomer.Field()
     create_user = CreateUser.Field()
