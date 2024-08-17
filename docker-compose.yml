@@ -1,0 +1,38 @@
+services:
+  frontend:
+    build:
+      context: ./black_lightning
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"  
+    env_file:
+      - ./black_lightning/.env  
+    volumes:
+      - ./black_lightning:/app  
+
+  backend:
+    build:
+      context: ./static_shock
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"  
+    env_file:
+      - ./static_shock/.env  
+    volumes:
+      - ./static_shock:/app  
+    # depends_on:
+    #   - db  
+
+  # db:
+  #   image: postgres:13  
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data/
+  #   env_file:
+  #     - ./static_shock/.env  
+  #   environment:
+  #     POSTGRES_DB: ${DATABASE_NAME}
+  #     POSTGRES_USER: ${DATABASE_USER}
+  #     POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+
+volumes:
+  postgres_data:
