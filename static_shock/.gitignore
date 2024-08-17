@@ -173,3 +173,5 @@ static_shock/.vscode/launch.json
 # Ignore all local history of files
 .history
 .ionide
+
+logos/*

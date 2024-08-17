@@ -44,5 +44,3 @@ class Supplier(BaseModel):
     
     def __str__(self):
         return f"{self.name} -- {self.average_customer_rating} -- {self.number_customers}"
-    class Meta:
-        ordering = ["-average_customer_rating"]

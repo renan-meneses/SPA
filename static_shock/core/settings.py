@@ -2,8 +2,6 @@ import os, ast
 from pathlib import Path
 from decouple import config
 
-from apps import supplier
-
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -12,7 +10,7 @@ SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG')
 
 ALLOWED_HOSTS = ast.literal_eval(str(config('ALLOWED_HOSTS')))
-
+CORS_ALLOWED_ORIGINS = ast.literal_eval(str(config('CORS_ALLOWED_ORIGINS')))
 
 
 INSTALLED_APPS = [
@@ -22,16 +20,25 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "corsheaders",
     "graphene_django",
     "apps.supplier"
 ]
 GRAPHENE = {
     'SCHEMA': 'core.schema.schema',
-    'SCHEMA': 'apps.supplier.schema.schema'
-
+    'MIDDLEWARE': [
+        'graphql_jwt.middleware.JSONWebTokenMiddleware',
+    ],
     
 }
+
+AUTHENTICATION_BACKENDS = [
+    "graphql_jwt.backends.JSONWebTokenBackend",
+    "django.contrib.auth.backends.ModelBackend",
+]
+
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -39,6 +46,8 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+
 ]
 
 ROOT_URLCONF = "core.urls"
@@ -58,6 +67,7 @@ TEMPLATES = [
         },
     },
 ]
+
 
 WSGI_APPLICATION = "core.wsgi.application"
 

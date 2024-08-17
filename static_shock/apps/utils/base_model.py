@@ -10,6 +10,6 @@ class BaseModel(models.Model):
     class Meta:
         abstract = True
         
-    def save(self, **kwargs):
-        self.update_at = timezone.now()
-        super.save(**kwargs)
+    def save(self, *args, **kwargs):
+        self.updated_at = timezone.now()  # Corrigido de 'update_at' para 'updated_at'
+        super().save(*args, **kwargs)
