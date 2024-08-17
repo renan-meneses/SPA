@@ -170,7 +170,7 @@ const GET_Suppliers = gql`
     suppliers {
       id
       name
-      date
+      averageCustomerRating
     }
   }
 `;
