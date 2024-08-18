@@ -12,9 +12,11 @@ import {
   ListItemText,
   TextField,
   Typography,
+  Grid,
 } from "@material-ui/core";
 import React, { useState } from "react";
 import { Edit, Delete } from "@mui/icons-material";
+import CardComponent from './components/CardComponent';
 const App = () => {
   const [name, setName] = useState("");
   const [supplierid, setSupplierid] = useState(null);
@@ -33,6 +35,38 @@ const App = () => {
       },
     ],
   });
+  const cardsData = [
+    {
+      title: 'Título 1',
+      imageUrl: 'https://via.placeholder.com/300x140',
+      fields: ['Campo 1', 'Campo 2', 'Campo 3']
+    },
+    {
+      title: 'Título 2',
+      imageUrl: 'https://via.placeholder.com/300x140',
+      fields: ['Campo 1', 'Campo 2', 'Campo 3']
+    },
+    {
+      title: 'Título 3',
+      imageUrl: 'https://via.placeholder.com/300x140',
+      fields: ['Campo 1', 'Campo 2', 'Campo 3']
+    },
+    {
+      title: 'Título 1',
+      imageUrl: 'https://via.placeholder.com/300x140',
+      fields: ['Campo 1', 'Campo 2', 'Campo 3']
+    },
+    {
+      title: 'Título 2',
+      imageUrl: 'https://via.placeholder.com/300x140',
+      fields: ['Campo 1', 'Campo 2', 'Campo 3']
+    },
+    {
+      title: 'Título 3',
+      imageUrl: 'https://via.placeholder.com/300x140',
+      fields: ['Campo 1', 'Campo 2', 'Campo 3']
+    }
+  ];
   const [updateSupplier] = useMutation(EDIT_supplier, {
     onCompleted(data) {
       setName("");
@@ -76,8 +110,12 @@ const App = () => {
   return (
     <Container>
       <Typography align="center" variant="h3">
-        Welcome to supplier App "{userdata?.user?.username}"
-        <Button style={marginLeft="80px"} color="secondary" variant="contained" onClick={logoutNow}>
+        Welcome  "{userdata?.user?.username}"
+        <Button style={{
+          marginLeft:"80px",
+        }} color="secondary" 
+        variant="contained" 
+        onClick={logoutNow}>
           Logout
         </Button>
       </Typography>
@@ -152,6 +190,17 @@ const App = () => {
             </ListItem>
           ))}
         </List>
+        <Grid container spacing={2}>
+        {cardsData.map((card, index) => (
+          <Grid item key={index} xs={12} sm={4}>
+            <CardComponent
+              title={card.title}
+              imageUrl={card.imageUrl}
+              fields={card.fields}
+            />
+          </Grid>
+        ))}
+      </Grid>
       </Box>
     </Container>
   );
