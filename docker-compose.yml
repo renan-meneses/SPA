@@ -30,9 +30,9 @@ services:
     env_file:
       - ./static_shock/.env  
     environment:
-      POSTGRES_DB: ${DATABASE_NAME}
-      POSTGRES_USER: ${DATABASE_USER}
-      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: "energy"
+      POSTGRES_USER: "clarke"
+      POSTGRES_PASSWORD: "43jH#7)N8BP"
 
 volumes:
   postgres_data:
