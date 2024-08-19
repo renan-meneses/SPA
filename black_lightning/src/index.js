@@ -11,7 +11,7 @@ import AuthPage from "./AuthPage";
 import { setContext } from "@apollo/client/link/context";
 
 const httpLink = createHttpLink({
-  uri: "http://3.92.160.85:8000/graphql/",
+  uri: "http://34.229.108.70:8000/graphql/",
 });
 
 const authLink = setContext((_, { headers }) => {
