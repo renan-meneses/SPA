@@ -1,255 +1,76 @@
-import { gql, useMutation, useQuery } from "@apollo/client";
-import {
-  Avatar,
-  Box,
-  Button,
-  Container,
-  IconButton,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemSecondaryAction,
-  ListItemText,
-  TextField,
-  Typography,
-  Grid,
-} from "@material-ui/core";
-import React, { useState } from "react";
-import { Edit, Delete } from "@mui/icons-material";
+import React, {useEffect, useState } from 'react';
+import { useQuery } from '@apollo/client';
+import { Container, Grid, CircularProgress, TextField, Box, Typography } from '@mui/material';
+import { GET_SUPPLIERS, GET_USER_DATA } from './querys/query'
 import CardComponent from './components/CardComponent';
-const App = () => {
-  const [name, setName] = useState("");
-  const [supplierid, setSupplierid] = useState(null);
-  const [editSupplier, seteditSupplier] = useState(false);
-  const { loading, error, data } = useQuery(GET_Suppliers);
+
+function App() {
+  const { data, loading, error } = useQuery(GET_SUPPLIERS);
+  const [minKWh, setMinKWh] = useState('');
+  const [filteredSuppliers, setFilteredSuppliers] = useState([]);
+  const [allSuppliers, setAllSuppliers] = useState([]); 
   const { loading: userloding, error: usererror, data: userdata } = useQuery(
     GET_USER_DATA
   );
-  const [createsupplier] = useMutation(Add_Supplier, {
-    onCompleted(data) {
-      setName("");
-    },
-    refetchQueries: [
-      {
-        query: GET_Suppliers,
-      },
-    ],
-  });
-  const cardsData = [
-    {
-      title: 'Título 1',
-      imageUrl: 'https://via.placeholder.com/300x140',
-      fields: ['Campo 1', 'Campo 2', 'Campo 3']
-    },
-    {
-      title: 'Título 2',
-      imageUrl: 'https://via.placeholder.com/300x140',
-      fields: ['Campo 1', 'Campo 2', 'Campo 3']
-    },
-    {
-      title: 'Título 3',
-      imageUrl: 'https://via.placeholder.com/300x140',
-      fields: ['Campo 1', 'Campo 2', 'Campo 3']
-    },
-    {
-      title: 'Título 1',
-      imageUrl: 'https://via.placeholder.com/300x140',
-      fields: ['Campo 1', 'Campo 2', 'Campo 3']
-    },
-    {
-      title: 'Título 2',
-      imageUrl: 'https://via.placeholder.com/300x140',
-      fields: ['Campo 1', 'Campo 2', 'Campo 3']
-    },
-    {
-      title: 'Título 3',
-      imageUrl: 'https://via.placeholder.com/300x140',
-      fields: ['Campo 1', 'Campo 2', 'Campo 3']
+
+  useEffect(() => {
+    if (data) {
+      setFilteredSuppliers(data.supplier);
+      const minKWhValue = parseFloat(minKWh) || 0;
+      const filtered = data.supplier.filter((supplier) =>
+        supplier.minimumKwhLimit >= minKWhValue
+      );
+      if(filtered){
+        setFilteredSuppliers(filtered);
+      }
     }
-  ];
-  const [updateSupplier] = useMutation(EDIT_supplier, {
-    onCompleted(data) {
-      setName("");
-      seteditSupplier(false);
-    },
-    refetchQueries: [
-      {
-        query: GET_Suppliers,
-      },
-    ],
-  });
-  const [delateSupplier] = useMutation(DELETE_supplier, {
-    onCompleted(data) {
-    },
-    refetchQueries: [
-      {
-        query: GET_Suppliers,
-      },
-    ],
-  });
-  const addNewSupplier = () => {
-    createsupplier({ variables: { name: name } });
+  }, [minKWh, data]);
+  const handleHireClick = (id) => {
+    // Função que será chamada quando o botão for clicado
+    console.log(`Fornecedor com ID ${id} foi contratado.`);
+    // Adicione aqui a lógica para tratar a contratação do fornecedor
   };
-  const editButtonHandeler = (id, name) => {
-    setName(name);
-    seteditSupplier(true);
-    setSupplierid(parseInt(id));
-  };
-  const editASupplier = () => {
-    updateSupplier({ variables: { id: supplierid, name: name } });
-  };
-  const delateSingleSupplier = (id) => {
-    delateSupplier({ variables: { id: id } });
-  };
-  const logoutNow = () => {
-    window.localStorage.clear();
-    window.location.href = "/";
-  };
-  if (loading) return <h1>Loding...</h1>;
-  if (error) return <h1>Error...</h1>;
+  if (data)
+  if (loading) return <CircularProgress />;
+  if (error) return <p>Erro ao carregar dados.</p>;
+
   return (
     <Container>
-      <Typography align="center" variant="h3">
-        Welcome  "{userdata?.user?.username}"
-        <Button style={{
-          marginLeft:"80px",
-        }} color="secondary" 
-        variant="contained" 
-        onClick={logoutNow}>
-          Logout
-        </Button>
-      </Typography>
-      <Box
-        style={{
-          maxWidth: "500px",
-          margin: "0 auto",
-          display: "flex",
-          marginTop: "15px",
-        }}
-      >
+      <Box sx={{ marginBottom: 2 }}>
+        <Typography variant="h4" gutterBottom>
+          Bem-vindo  {userdata?.user?.username}  à nossa plataforma de fornecedores 
+        </Typography>
         <TextField
-          fullWidth
-          value={name}
-          id="outlined-basic"
-          label={editSupplier ? "Edit supplier" : "Add supplier.."}
+          label="Mínimo kWh"
           variant="outlined"
-          onChange={(e) => setName(e.target.value)}
+          fullWidth
+          type="number"
+          value={minKWh}
+          onChange={(e) => setMinKWh(e.target.value)}
         />
-        {editSupplier ? (
-          <Button
-            onClick={editASupplier}
-            disabled={!name}
-            variant="contained"
-            color="primary"
-          >
-            Edit
-          </Button>
+      </Box>
+      <Grid container spacing={2}>
+      {Array.isArray(filteredSuppliers) && filteredSuppliers.length > 0 ? (
+          filteredSuppliers?.map((supplier) => (
+            <Grid item key={supplier.id} xs={12} sm={4}>
+              <CardComponent
+                id={supplier.id}
+                name={supplier.name}
+                logo={supplier.logo}
+                averageCustomerRating={supplier.averageCustomerRating}
+                minimumKwhLimit={supplier.minimumKwhLimit}
+                onHireClick={() => handleHireClick(supplier.id)}
+              />
+            </Grid>
+          ))
         ) : (
-          <Button
-            onClick={addNewSupplier}
-            disabled={!name}
-            variant="contained"
-            color="primary"
-          >
-            Add
-          </Button>
+          <Typography variant="h6" color="text.secondary">
+            Nenhum fornecedor encontrado.
+          </Typography>
         )}
-      </Box>
-      <Box
-        component="div"
-        style={{
-          maxWidth: "500px",
-          margin: "0 auto",
-        }}
-      >
-        <List>
-          {data?.suppliers?.map((item, i) => (
-            <ListItem button key={i}>
-              <ListItemIcon>
-                <Avatar
-                  style={{
-                    backgroundColor: "blue",
-                  }}
-                >
-                  {i + 1}
-                </Avatar>
-              </ListItemIcon>
-              <ListItemText primary={item?.name} />
-              <ListItemSecondaryAction>
-                <IconButton
-                  onClick={() => editButtonHandeler(item?.id, item?.name)}
-                >
-                  <Edit color="primary" />
-                </IconButton>
-                <IconButton
-                  onClick={() => delateSingleSupplier(parseInt(item?.id))}
-                >
-                  <Delete color="secondary" />
-                </IconButton>
-              </ListItemSecondaryAction>
-            </ListItem>
-          ))}
-        </List>
-        <Grid container spacing={2}>
-        {cardsData.map((card, index) => (
-          <Grid item key={index} xs={12} sm={4}>
-            <CardComponent
-              title={card.title}
-              imageUrl={card.imageUrl}
-              fields={card.fields}
-            />
-          </Grid>
-        ))}
       </Grid>
-      </Box>
     </Container>
   );
-};
+}
 
-const GET_USER_DATA = gql`
-  {
-    user {
-      id
-      username
-    }
-  }
-`;
-const GET_Suppliers = gql`
-  {
-    supplier {
-      id
-      name
-      averageCustomerRating
-    }
-  }
-`;
-const Add_Supplier = gql`
-  mutation CreateSupplier($name: String!) {
-    CreateSupplier(name: $name) {
-      supplier {
-        id
-        name
-        date
-      }
-    }
-  }
-`;
-const EDIT_supplier = gql`
-  mutation updateSupplier($id: UUID!, $name: String!) {
-    updateSupplier(id: $id, name: $name) {
-      supplier {
-        id
-        name
-        date
-      }
-    }
-  }
-`;
-const DELETE_supplier = gql`
-  mutation delateSupplier($id: Int!) {
-    delateSupplier(id: $id) {
-      message
-    }
-  }
-`;
 export default App;
