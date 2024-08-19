@@ -1,47 +1,70 @@
-import React, {useEffect, useState } from 'react';
-import { useQuery } from '@apollo/client';
-import { Container, Grid, CircularProgress, TextField, Box, Typography } from '@mui/material';
-import { GET_SUPPLIERS, GET_USER_DATA } from './querys/query'
+import React, { useEffect, useState } from 'react';
+import { useQuery, useMutation } from '@apollo/client';
+import { Container, Grid, CircularProgress, TextField, Box, Typography, Button } from '@mui/material';
+import { GET_SUPPLIERS, GET_USER_DATA, HIRE_SUPPLIER } from './querys/query';
 import CardComponent from './components/CardComponent';
 
 function App() {
   const { data, loading, error } = useQuery(GET_SUPPLIERS);
   const [minKWh, setMinKWh] = useState('');
   const [filteredSuppliers, setFilteredSuppliers] = useState([]);
-  const [allSuppliers, setAllSuppliers] = useState([]); 
-  const { loading: userloding, error: usererror, data: userdata } = useQuery(
-    GET_USER_DATA
-  );
+  const { loading: userLoading, error: userError, data: userData } = useQuery(GET_USER_DATA);
+  
+  const [hireSupplier] = useMutation(HIRE_SUPPLIER);
 
   useEffect(() => {
     if (data) {
-      setFilteredSuppliers(data.supplier);
       const minKWhValue = parseFloat(minKWh) || 0;
-      const filtered = data.supplier.filter((supplier) =>
-        supplier.minimumKwhLimit >= minKWhValue
-      );
-      if(filtered){
-        setFilteredSuppliers(filtered);
-      }
+      const filtered = data.supplier.filter(supplier => supplier.minimumKwhLimit >= minKWhValue);
+      setFilteredSuppliers(filtered);
     }
   }, [minKWh, data]);
-  const handleHireClick = (id) => {
-    // Função que será chamada quando o botão for clicado
-    console.log(`Fornecedor com ID ${id} foi contratado.`);
-    // Adicione aqui a lógica para tratar a contratação do fornecedor
+
+  const handleHireClick = async (supplierId) => {
+    try {
+      const minKWhValue = parseFloat(minKWh) || 0;
+      const response = await hireSupplier({
+        variables: {
+          supplierId: supplierId,
+          monthlyConsumption: minKWhValue,
+        },
+      });
+
+      const { success, message } = response.data.hireSupplier;
+      if (success) {
+        console.log(`Fornecedor com ID ${supplierId} foi contratado com sucesso.`);
+      } else {
+        console.log(`Erro ao contratar fornecedor: ${message}`);
+      }
+    } catch (error) {
+      console.error("Erro na contratação do fornecedor:", error);
+    }
   };
-  if (data)
-  if (loading) return <CircularProgress />;
-  if (error) return <p>Erro ao carregar dados.</p>;
+
+  const logoutNow = () => {
+    window.localStorage.clear();
+    window.location.href = "/";
+  };
+
+  if (loading || userLoading) return <CircularProgress />;
+  if (error || userError) return <p>Erro ao carregar dados.</p>;
 
   return (
     <Container>
       <Box sx={{ marginBottom: 2 }}>
         <Typography variant="h4" gutterBottom>
-          Bem-vindo  {userdata?.user?.username}  à nossa plataforma de fornecedores 
+          Bem-vindo {userData?.user?.username} à nossa plataforma de fornecedores 
+          <Button
+            style={{ marginLeft: "80px" }}
+            color="secondary"
+            variant="contained"
+            onClick={logoutNow}
+          >
+            Logout
+          </Button>
         </Typography>
         <TextField
-          label="Mínimo kWh"
+          label="Consumo em kWh"
           variant="outlined"
           fullWidth
           type="number"
@@ -50,8 +73,8 @@ function App() {
         />
       </Box>
       <Grid container spacing={2}>
-      {Array.isArray(filteredSuppliers) && filteredSuppliers.length > 0 ? (
-          filteredSuppliers?.map((supplier) => (
+        {Array.isArray(filteredSuppliers) && filteredSuppliers.length > 0 ? (
+          filteredSuppliers.map((supplier) => (
             <Grid item key={supplier.id} xs={12} sm={4}>
               <CardComponent
                 id={supplier.id}

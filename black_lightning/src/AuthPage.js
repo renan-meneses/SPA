@@ -9,6 +9,8 @@ import {
 } from "@material-ui/core";
 import gql from "graphql-tag";
 import React, { useState } from "react";
+import { LOGIN_MUTATION, REGISTER_NEW_USER } from './querys/query'
+
 
 const AuthPage = () => {
   const [registernow, setRegisternow] = useState(false);
@@ -137,22 +139,5 @@ const AuthPage = () => {
   );
 };
 
-const LOGIN_MUTATION = gql`
-  mutation LoginNow($username: String!, $password: String!) {
-    tokenAuth(username: $username, password: $password) {
-      token
-    }
-  }
-`;
-const REGISTER_NEW_USER = gql`
-  mutation RegisterNow($username: String!, $password: String!) {
-    createUser(username: $username, password: $password) {
-      user {
-        id
-        username
-      }
-    }
-  }
-`;
 
 export default AuthPage;
